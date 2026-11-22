@@ -48,3 +48,14 @@ def test_frontend_serving() -> None:
     res = client.get("/")
     assert res.status_code == 200
     assert "KratosBot" in res.text
+
+
+def test_frontend_serving_fallback(monkeypatch, tmp_path) -> None:
+    from kratosbot import api
+
+    monkeypatch.setattr(api, "FRONTEND_DIST", tmp_path / "missing_dist")
+    client = TestClient(app)
+    res = client.get("/")
+    assert res.status_code == 200
+    assert "KratosBot" in res.text
+    assert "Backend API and streaming services are online" in res.text

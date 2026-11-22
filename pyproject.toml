@@ -33,6 +33,10 @@ where = ["src"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-q"
+filterwarnings = [
+  "ignore:.*StarletteDeprecationWarning.*",
+  "ignore:.*Using `httpx` with `starlette.testclient`.*",
+]
 
 [tool.ruff]
 line-length = 88

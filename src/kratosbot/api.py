@@ -13,7 +13,7 @@ from typing import Any
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -219,16 +219,74 @@ async def chat(request: ChatRequest):
     )
 
 
-# Serve built frontend static files if present
-FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
-if FRONTEND_DIST.exists() and (FRONTEND_DIST / "index.html").exists():
-    assets_dir = FRONTEND_DIST / "assets"
-    if assets_dir.exists():
-        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+FALLBACK_HTML = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>KratosBot — Specialized Autonomous Coding Agent</title>
+  <style>
+    body {
+      background-color: #07080b;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { color: #f87171; margin-bottom: 8px; }
+    p { color: #9ca3af; max-width: 600px; line-height: 1.6; }
+    code {
+      background: #1f1418;
+      color: #fca5a5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: #2e1217;
+      color: #f87171;
+      border: 1px solid #5a1b24;
+      font-size: 12px;
+      margin-bottom: 16px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="badge">⚔️ KratosBot API Online</div>
+  <h1>KratosBot Specialized Autonomous Coding Agent</h1>
+  <p>Backend API and streaming services are online.</p>
+  <p>
+    To view the full React web UI, build frontend assets via
+    <code>npm run build</code> inside the <code>frontend</code> folder,
+    or run Vite dev server at <code>http://localhost:5173</code>.
+  </p>
+</body>
+</html>
+"""
 
-    @app.get("/{full_path:path}")
-    def serve_frontend(full_path: str):
-        requested_file = FRONTEND_DIST / full_path
-        if full_path and requested_file.exists() and requested_file.is_file():
-            return FileResponse(str(requested_file))
-        return FileResponse(str(FRONTEND_DIST / "index.html"))
+# Serve built frontend static files if present, or fallback HTML
+FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+assets_dir = FRONTEND_DIST / "assets"
+if assets_dir.exists():
+    app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+
+
+@app.get("/{full_path:path}")
+def serve_frontend(full_path: str):
+    index_file = FRONTEND_DIST / "index.html"
+    requested_file = FRONTEND_DIST / full_path
+
+    if full_path and requested_file.exists() and requested_file.is_file():
+        return FileResponse(str(requested_file))
+    if index_file.exists() and index_file.is_file():
+        return FileResponse(str(index_file))
+    return HTMLResponse(content=FALLBACK_HTML, status_code=200)
