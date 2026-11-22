@@ -1,0 +1,43 @@
+# Secrets
+.env
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+.npm
+frontend/.oxlint_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Pipenv lock is intentionally committed when generated.
+
+# Test and lint caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local app data
+*.sqlite3
+*.db
+data/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
